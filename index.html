@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>🎧 Emotion Music Player</title>
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500&family=Orbitron:wght@500&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+      color: #fff;
+      font-family: 'Quicksand', sans-serif;
+      text-align: center;
+    }
+
+    h1 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 28px;
+      margin-top: 20px;
+      letter-spacing: 1px;
+      color: #00eaff;
+      text-shadow: 1px 1px 10px #13a6fba9;
+    }
+
+    #emotion-display {
+      margin: 25px auto;
+      font-size: 24px;
+      padding: 10px 20px;
+      background: #ff4141f1;
+      border-left: 6px solid #00ff6e;
+      border-radius: 10px;
+      width: fit-content;
+      box-shadow: 0 0 10px #12ee07;
+      transition: all 0.3s ease-in-out;
+    }
+
+    #play-btn {
+      padding: 12px 25px;
+      font-size: 18px;
+      font-weight: bold;
+      background: linear-gradient(to right, #00c6ff, #0072ff);
+      color: white;
+      border: none;
+      border-radius: 30px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(219, 187, 5, 0.695);
+      display: none;
+    }
+
+    #play-btn:hover {
+      background: linear-gradient(to right, #00ffcc, #ace10e);
+      box-shadow: 0 6px 20px rgba(0, 255, 204, 0.6);
+      transform: scale(1.10);
+    }
+
+    img {
+      margin-top: 25px;
+      border-radius: 15px;
+      border: 4px solid #09f1caf6;
+      box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+      width: 640px;
+      height: 480px;
+      max-width: 95%;
+    }
+
+    footer {
+      margin-top: 30px;
+      font-size: 14px;
+      color: #ccc;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎵 Real-Time Emotion Music Player</h1>
+
+  <div>
+    <img src="{{ url_for('video_feed') }}" alt="Webcam Feed">
+  </div>
+
+  <div id="emotion-display">🤖 Detecting your emotion...</div>
+
+  <button id="play-btn">▶ Play Song for Emotion</button>
+
+  <footer>
+    <p>⚙️ Running on Python version: <strong>{{ python_version }}</strong></p>
+  </footer>
+
+  <script>
+    let emotionDetected = null;
+    let songPlayed = false;
+    let polling = true;
+
+    function checkEmotion() {
+      if (!polling || songPlayed) return;
+
+      fetch('/get_emotion')
+        .then(res => res.json())
+        .then(data => {
+          if (data.emotion && data.emotion !== emotionDetected) {
+            emotionDetected = data.emotion;
+            document.getElementById("emotion-display").innerText =
+              "💡 Emotion Detected: " + emotionDetected.toUpperCase();
+            document.getElementById("play-btn").style.display = "inline-block";
+            polling = false;
+          }
+        });
+    }
+
+    document.getElementById("play-btn").addEventListener("click", () => {
+      if (emotionDetected && !songPlayed) {
+        fetch('/play_song')
+          .then(res => res.json())
+          .then(data => {
+            if (data.status === "playing") {
+              alert("🎶 Music is now playing in a new tab!");
+              songPlayed = true;
+            } else {
+              alert("❌ No emotion detected yet.");
+            }
+          });
+      }
+    });
+
+    setInterval(checkEmotion, 1000);
+  </script>
+</body>
+</html>
